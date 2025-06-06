@@ -61,7 +61,7 @@
         .admin-toggle {
             position: absolute;
             top: 16px;
-            right: 24px;
+            left: 24px;
             background: var(--accent-purple);
             border: none;
             color: var(--text-primary);
@@ -81,6 +81,7 @@
 
         .title-section {
             flex: 1;
+            margin-left: 60px;
         }
 
         .title {
@@ -103,7 +104,6 @@
         .progress {
             text-align: right;
             flex-shrink: 0;
-            margin-right: 60px;
         }
 
         .progress-label {
@@ -149,6 +149,13 @@
             font-size: 1.3rem;
             font-weight: 600;
             color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .team-score {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--completed-green);
         }
 
         /* Games section */
@@ -160,26 +167,26 @@
 
         .games-list {
             height: 100%;
-            overflow-y: auto;
-            padding-right: 8px;
+            overflow: hidden;
+            position: relative;
         }
 
-        .games-list::-webkit-scrollbar {
-            width: 6px;
+        .games-container {
+            display: flex;
+            flex-direction: column;
+            animation: scrollUp 30s linear infinite;
         }
 
-        .games-list::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-        }
-
-        .games-list::-webkit-scrollbar-thumb {
-            background: var(--accent-purple);
-            border-radius: 3px;
-        }
-
-        .games-list::-webkit-scrollbar-thumb:hover {
-            background: var(--secondary-purple);
+        @keyframes scrollUp {
+            0% {
+                transform: translateY(100%);
+            }
+            90% {
+                transform: translateY(-100%);
+            }
+            100% {
+                transform: translateY(-100%);
+            }
         }
 
         .game-item {
@@ -194,6 +201,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             user-select: none;
+            min-height: 50px;
         }
 
         .game-item:hover {
@@ -232,22 +240,22 @@
         .admin-panel {
             position: fixed;
             top: 0;
-            right: -400px;
+            left: -400px;
             width: 380px;
             height: 100vh;
             background: var(--glass-bg);
             backdrop-filter: blur(30px);
             -webkit-backdrop-filter: blur(30px);
-            border-left: 1px solid var(--glass-border);
-            box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5);
-            transition: right 0.4s ease;
+            border-right: 1px solid var(--glass-border);
+            box-shadow: 8px 0 32px rgba(0, 0, 0, 0.5);
+            transition: left 0.4s ease;
             z-index: 999;
             overflow-y: auto;
             padding: 20px;
         }
 
         .admin-panel.open {
-            right: 0;
+            left: 0;
         }
 
         .admin-header {
@@ -307,6 +315,33 @@
             transform: translateY(-1px);
         }
 
+        .score-inputs {
+            display: flex;
+            gap: 12px;
+        }
+
+        .score-input-group {
+            flex: 1;
+        }
+
+        .score-input-group label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .score-input {
+            width: 100%;
+            background: rgba(76, 61, 107, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            padding: 8px 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            text-align: center;
+        }
+
         .games-editor {
             max-height: 200px;
             overflow-y: auto;
@@ -338,16 +373,11 @@
             .title {
                 font-size: 2rem;
             }
-            
-            .teams-section {
-                flex-direction: column;
-                gap: 12px;
-            }
         }
 
         /* Container for the entire overlay */
         .overlay-container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             height: 100%;
             display: flex;
@@ -377,17 +407,21 @@
             <div class="team">
                 <div class="team-label">Team 1</div>
                 <div class="team-names" id="team1">July & Paul</div>
+                <div class="team-score" id="team1-score">0 points</div>
             </div>
             <div class="team">
                 <div class="team-label">Team 2</div>
                 <div class="team-names" id="team2">Noah & Max</div>
+                <div class="team-score" id="team2-score">0 points</div>
             </div>
         </div>
 
         <!-- Games section -->
         <div class="games-section glass">
             <div class="games-list" id="games-list">
-                <!-- Games will be populated by JavaScript -->
+                <div class="games-container" id="games-container">
+                    <!-- Games will be populated by JavaScript -->
+                </div>
             </div>
         </div>
     </div>
@@ -406,6 +440,18 @@
             <h3>Teams</h3>
             <input type="text" class="admin-input" id="team1-input" placeholder="Team 1 Names" onchange="updateTeam1()">
             <input type="text" class="admin-input" id="team2-input" placeholder="Team 2 Names" onchange="updateTeam2()">
+            
+            <h4 style="margin-top: 16px; margin-bottom: 8px; color: var(--text-secondary);">Scores</h4>
+            <div class="score-inputs">
+                <div class="score-input-group">
+                    <label for="team1-score-input">Team 1 Score</label>
+                    <input type="number" class="score-input" id="team1-score-input" min="0" value="0" onchange="updateTeam1Score()">
+                </div>
+                <div class="score-input-group">
+                    <label for="team2-score-input">Team 2 Score</label>
+                    <input type="number" class="score-input" id="team2-score-input" min="0" value="0" onchange="updateTeam2Score()">
+                </div>
+            </div>
         </div>
 
         <div class="admin-section">
@@ -427,6 +473,8 @@
             title: "Olympiade",
             team1: "July & Paul",
             team2: "Noah & Max",
+            team1Score: 0,
+            team2Score: 0,
             games: [
                 "Apex Legends",
                 "Codenames", 
@@ -439,7 +487,8 @@
                 "Auf einem Bein stehen"
             ],
             initiallyCompleted: [], // Indices of initially completed games
-            autoStartTimer: true
+            autoStartTimer: true,
+            scrollSpeed: 30 // Animation duration in seconds
         };
 
         // ========================================
@@ -450,6 +499,8 @@
         let timerSeconds = 0;
         let timerInterval = null;
         let currentGames = [...CONFIG.games];
+        let team1Score = CONFIG.team1Score;
+        let team2Score = CONFIG.team2Score;
 
         // ========================================
         // INITIALIZATION
@@ -463,16 +514,28 @@
             document.getElementById('title-input').value = CONFIG.title;
             document.getElementById('team1-input').value = CONFIG.team1;
             document.getElementById('team2-input').value = CONFIG.team2;
+            document.getElementById('team1-score-input').value = team1Score;
+            document.getElementById('team2-score-input').value = team2Score;
             
             // Populate games
             populateGames();
             populateGamesEditor();
             updateProgress();
+            updateScores();
             
             // Start timer
             if (CONFIG.autoStartTimer) {
                 startTimer();
             }
+
+            // Set up auto-scrolling animation duration
+            const style = document.createElement('style');
+            style.textContent = `
+                .games-container {
+                    animation-duration: ${CONFIG.scrollSpeed}s;
+                }
+            `;
+            document.head.appendChild(style);
         }
 
         // ========================================
@@ -480,24 +543,22 @@
         // ========================================
         
         function populateGames() {
-            const container = document.getElementById('games-list');
+            const container = document.getElementById('games-container');
             container.innerHTML = '';
             
-            currentGames.forEach((game, index) => {
-                const gameElement = document.createElement('div');
-                gameElement.className = 'game-item';
-                gameElement.innerHTML = `
-                    <span class="game-name">${game}</span>
-                    <span class="checkmark">✓</span>
+            // Create two sets of games for seamless looping
+            const gamesHTML = currentGames.map((game, index) => {
+                const isCompleted = completedGames.has(index);
+                return `
+                    <div class="game-item ${isCompleted ? 'completed' : ''}" onclick="toggleGame(${index})">
+                        <span class="game-name">${game}</span>
+                        <span class="checkmark">✓</span>
+                    </div>
                 `;
-                
-                if (completedGames.has(index)) {
-                    gameElement.classList.add('completed');
-                }
-                
-                gameElement.addEventListener('click', () => toggleGame(index));
-                container.appendChild(gameElement);
-            });
+            }).join('');
+            
+            // Duplicate games for seamless scrolling
+            container.innerHTML = gamesHTML + gamesHTML;
         }
 
         function toggleGame(index) {
@@ -515,6 +576,25 @@
             const completed = completedGames.size;
             const total = currentGames.length;
             document.getElementById('progress').textContent = `${completed}/${total}`;
+        }
+
+        // ========================================
+        // TEAM SCORE MANAGEMENT
+        // ========================================
+        
+        function updateScores() {
+            document.getElementById('team1-score').textContent = `${team1Score} points`;
+            document.getElementById('team2-score').textContent = `${team2Score} points`;
+        }
+
+        function updateTeam1Score() {
+            team1Score = parseInt(document.getElementById('team1-score-input').value) || 0;
+            updateScores();
+        }
+
+        function updateTeam2Score() {
+            team2Score = parseInt(document.getElementById('team2-score-input').value) || 0;
+            updateScores();
         }
 
         // ========================================
