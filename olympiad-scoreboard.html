@@ -1,0 +1,477 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaming Olympiad Scoreboard</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: transparent;
+            color: var(--text-color);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        :root {
+            --primary-bg: rgba(0, 0, 0, 0.8);
+            --secondary-bg: rgba(20, 20, 20, 0.9);
+            --text-color: #ffffff;
+            --completed-color: #4ade80;
+            --border-color: rgba(255, 255, 255, 0.2);
+            --hover-bg: rgba(255, 255, 255, 0.1);
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Header section */
+        .header {
+            background: var(--primary-bg);
+            padding: 20px 30px;
+            border-radius: 15px;
+            margin: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .stats {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .progress, .timer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .progress-label, .timer-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .progress-value, .timer-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Game list container */
+        .games-container {
+            flex: 1;
+            margin: 0 20px 20px 20px;
+            background: var(--secondary-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .games-list {
+            padding: 20px;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .scrolling-content {
+            transition: transform 0.1s linear;
+        }
+
+        .game-item {
+            padding: 15px 20px;
+            margin: 8px 0;
+            background: var(--primary-bg);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .game-item:hover {
+            background: var(--hover-bg);
+            border-color: var(--border-color);
+            transform: translateX(5px);
+        }
+
+        .game-item.completed {
+            background: var(--completed-color);
+            color: #000;
+            border-color: var(--completed-color);
+        }
+
+        .game-item.completed:hover {
+            background: #22c55e;
+        }
+
+        .checkmark {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .game-item.completed .checkmark {
+            opacity: 1;
+        }
+
+        /* Timer controls */
+        .timer-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary-bg);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+        }
+
+        .timer-controls button {
+            background: var(--secondary-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 5px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .timer-controls button:hover {
+            background: var(--hover-bg);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .title {
+                font-size: 2rem;
+            }
+
+            .stats {
+                flex-direction: row;
+                justify-content: center;
+            }
+        }
+
+        /* Gradient overlays for smooth scrolling effect */
+        .games-container::before,
+        .games-container::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 30px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .games-container::before {
+            top: 0;
+            background: linear-gradient(to bottom, var(--secondary-bg), transparent);
+        }
+
+        .games-container::after {
+            bottom: 0;
+            background: linear-gradient(to top, var(--secondary-bg), transparent);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title" id="title">Olympiade</div>
+        <div class="stats">
+            <div class="progress">
+                <div class="progress-label">Progress</div>
+                <div class="progress-value" id="progress">0/9</div>
+            </div>
+            <div class="timer">
+                <div class="timer-label">Time</div>
+                <div class="timer-value" id="timer">00:00</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="games-container">
+        <div class="games-list">
+            <div class="scrolling-content" id="scrolling-content">
+                <!-- Games will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <div class="timer-controls">
+        <button onclick="resetTimer()">Reset Timer</button>
+        <button onclick="pauseTimer()">Pause/Resume</button>
+    </div>
+
+    <script>
+        // ========================================
+        // CUSTOMIZATION SECTION - EDIT THESE VALUES
+        // ========================================
+        
+        const CONFIG = {
+            // Title displayed at the top
+            title: "Olympiade",
+            
+            // List of games
+            games: [
+                "Apex Legends",
+                "Codenames", 
+                "Minecraft Speedrun",
+                "Fall Guys",
+                "Geo Bingo",
+                "Rocket League",
+                "Stadt Land Fluss",
+                "Wörter assoziieren",
+                "Auf einem Bein stehen"
+            ],
+            
+            // Initially completed games (by index, 0-based)
+            initiallyCompleted: [],
+            
+            // Scroll settings
+            scrollSpeed: 0.5, // pixels per frame (lower = slower)
+            pauseDuration: 2000, // milliseconds to pause at top/bottom
+            
+            // Timer settings
+            autoStartTimer: true, // Start timer automatically on page load
+            
+            // Colors (you can customize these)
+            colors: {
+                primaryBg: "rgba(0, 0, 0, 0.8)",
+                secondaryBg: "rgba(20, 20, 20, 0.9)",
+                textColor: "#ffffff",
+                completedColor: "#4ade80",
+                borderColor: "rgba(255, 255, 255, 0.2)",
+                hoverBg: "rgba(255, 255, 255, 0.1)"
+            }
+        };
+
+        // ========================================
+        // APPLICATION CODE - AVOID EDITING BELOW
+        // ========================================
+
+        // State variables
+        let completedGames = new Set(CONFIG.initiallyCompleted);
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let timerPaused = false;
+        let scrollPosition = 0;
+        let scrollDirection = 1; // 1 = down, -1 = up
+        let scrollPaused = false;
+        let scrollTimeout = null;
+
+        // Initialize the application
+        function init() {
+            // Apply custom colors
+            applyCustomColors();
+            
+            // Set title
+            document.getElementById('title').textContent = CONFIG.title;
+            
+            // Populate games
+            populateGames();
+            
+            // Update progress
+            updateProgress();
+            
+            // Start timer if configured
+            if (CONFIG.autoStartTimer) {
+                startTimer();
+            }
+            
+            // Start scrolling animation
+            startScrolling();
+        }
+
+        function applyCustomColors() {
+            const root = document.documentElement;
+            Object.entries(CONFIG.colors).forEach(([key, value]) => {
+                const cssVar = key.replace(/([A-Z])/g, '-$1').toLowerCase();
+                root.style.setProperty(`--${cssVar}`, value);
+            });
+        }
+
+        function populateGames() {
+            const container = document.getElementById('scrolling-content');
+            container.innerHTML = '';
+            
+            CONFIG.games.forEach((game, index) => {
+                const gameElement = document.createElement('div');
+                gameElement.className = 'game-item';
+                gameElement.innerHTML = `
+                    <span>${game}</span>
+                    <span class="checkmark">✓</span>
+                `;
+                
+                if (completedGames.has(index)) {
+                    gameElement.classList.add('completed');
+                }
+                
+                gameElement.addEventListener('click', () => toggleGame(index));
+                container.appendChild(gameElement);
+            });
+        }
+
+        function toggleGame(index) {
+            if (completedGames.has(index)) {
+                completedGames.delete(index);
+            } else {
+                completedGames.add(index);
+            }
+            
+            // Update visual state
+            const gameItems = document.querySelectorAll('.game-item');
+            gameItems[index].classList.toggle('completed');
+            
+            // Update progress
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const completed = completedGames.size;
+            const total = CONFIG.games.length;
+            document.getElementById('progress').textContent = `${completed}/${total}`;
+        }
+
+        // Timer functions
+        function startTimer() {
+            if (timerInterval) return;
+            
+            timerInterval = setInterval(() => {
+                if (!timerPaused) {
+                    timerSeconds++;
+                    updateTimerDisplay();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            timerPaused = !timerPaused;
+        }
+
+        function resetTimer() {
+            timerSeconds = 0;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timerSeconds / 60);
+            const seconds = timerSeconds % 60;
+            const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('timer').textContent = display;
+        }
+
+        // Scrolling functions
+        function startScrolling() {
+            const container = document.getElementById('scrolling-content');
+            const containerHeight = container.parentElement.clientHeight;
+            const contentHeight = container.scrollHeight;
+            
+            // Don't scroll if content fits in container
+            if (contentHeight <= containerHeight) {
+                return;
+            }
+
+            function scroll() {
+                if (scrollPaused) return;
+                
+                scrollPosition += CONFIG.scrollSpeed * scrollDirection;
+                
+                const maxScroll = contentHeight - containerHeight;
+                
+                // Check if we've reached the boundaries
+                if (scrollPosition >= maxScroll && scrollDirection === 1) {
+                    // Reached bottom, pause and reverse
+                    scrollPaused = true;
+                    setTimeout(() => {
+                        scrollDirection = -1;
+                        scrollPaused = false;
+                    }, CONFIG.pauseDuration);
+                } else if (scrollPosition <= 0 && scrollDirection === -1) {
+                    // Reached top, pause and reverse
+                    scrollPaused = true;
+                    scrollPosition = 0;
+                    setTimeout(() => {
+                        scrollDirection = 1;
+                        scrollPaused = false;
+                    }, CONFIG.pauseDuration);
+                }
+                
+                // Clamp scroll position
+                scrollPosition = Math.max(0, Math.min(maxScroll, scrollPosition));
+                
+                // Apply transform
+                container.style.transform = `translateY(-${scrollPosition}px)`;
+                
+                requestAnimationFrame(scroll);
+            }
+            
+            scroll();
+        }
+
+        // Keyboard shortcuts (optional)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ') {
+                e.preventDefault();
+                pauseTimer();
+            } else if (e.key === 'r' || e.key === 'R') {
+                resetTimer();
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            // Restart scrolling with new dimensions
+            scrollPosition = 0;
+            scrollDirection = 1;
+            scrollPaused = false;
+        });
+
+        // Initialize when page loads
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
